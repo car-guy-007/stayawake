@@ -1,0 +1,39 @@
+name: Build StayAwake
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Publish portable Windows executable
+        run: >
+          dotnet publish .\StayAwake\StayAwake.csproj
+          -c Release
+          -r win-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -o .\artifacts\win-x64
+
+      - name: Upload executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: StayAwake-windows-x64
+          path: artifacts/win-x64/StayAwake.exe
+          if-no-files-found: error
+          retention-days: 14
